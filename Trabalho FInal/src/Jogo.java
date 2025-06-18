@@ -1,55 +1,64 @@
-import java.io.*;
-import java.util.*;
+import java.io.*; // importando todas as classes do pacote java.io
+import java.util.*; // Importando todas as classes utilitárias
 
 public class Jogo {
-    private Map<String, Integer> ranking;
+    private Map<String, Integer> ranking; // dicionário para gaurdar o ranking
     private Scanner scanner;
-    private static final String ARQUIVO_RANKING = "ranking.txt";
+    private static final String ARQUIVO_RANKING = "ranking.txt"; // indica o nome do arquivo onde o ranking será salvo ou carregado
 
     public Jogo() {
-        this.ranking = new HashMap<>();
+        this.ranking = new HashMap<>(); // inicializa o ranking como um novo HashMap vazio
         this.scanner = new Scanner(System.in);
-        carregarRanking();
+        carregarRanking(); //
     }
 
     public void iniciarJogo() {
-        System.out.println("Bem-vindo ao Pedra, Papel e Tesoura!");
 
+        // introuzindo o jogo
+        System.out.println("Bem-vindo ao Pedra, Papel e Tesoura!\nAs regras são as mesmas: escolha entre pedra, papel ou tesoura, pedra ganha de tesoura, tesoura de papel e papel ganha de pedra.\nPorém aqui você possui apenas 3 vidas.\nSeu grande objetivo será ganhar o máximo de vezes (antes de ficar sem vida) para subir ao topo do Ranking!");
+
+        // pegando o nome do jogador, isso é importante para guardar posteriormente no ranking
         System.out.print("Digite seu nome de jogador: ");
         String nomeJogador = scanner.nextLine();
         JogadorPrincipal jogadorPrincipal = new JogadorPrincipal(nomeJogador, scanner);
         JogadorAdversario jogadorAdversario = new JogadorAdversario();
 
+        // definindo rodadas e vitorias
         int rodadas = 0;
         int vitoriasJogador = 0;
-        int vitoriasCPU = 0;
+        int vitoriasAdversario = 0;
+        int vidaJogador = 3;
 
-        while (true) {
-            rodadas++;
+        while (true) { // jogo rodando
+            rodadas++; // aumentando as rodadas
             System.out.println("\n--- Rodada " + rodadas + " ---");
+
+            // definindo para guardar quem venceu a rodada
             Jogador vencedorRodada = jogarRodada(jogadorPrincipal, jogadorAdversario);
 
+            // verificações
             if (vencedorRodada == jogadorPrincipal) {
                 System.out.println(jogadorPrincipal.getNome() + " venceu a rodada!");
                 vitoriasJogador++;
             } else if (vencedorRodada == jogadorAdversario) {
-                System.out.println("CPU venceu a rodada!");
-                vitoriasCPU++;
+                vidaJogador--;
+                System.out.println("Adversário venceu a rodada!\nVocê perdeu uma vida!\nTotal de vidas = "+vidaJogador);
+                vitoriasAdversario++;
+
             } else {
                 System.out.println("Empate na rodada!");
             }
 
-            System.out.println("Placar atual: " + jogadorPrincipal.getNome() + " " + vitoriasJogador + " x " + vitoriasCPU + " CPU");
+            System.out.println("Placar atual: " + jogadorPrincipal.getNome() + " " + vitoriasJogador + " x " + vitoriasAdversario + " Adversário");
 
-            System.out.print("Deseja jogar outra rodada? (sim/nao): ");
-            String continuar = scanner.nextLine().trim().toLowerCase();
-            if (!continuar.equals("sim")) {
+            // quebra o código caso o jogador fique sem vida
+            if (vidaJogador==0) {
                 break;
             }
         }
 
         System.out.println("\n--- Fim do Jogo ---");
-        System.out.println("Resultado Final: " + jogadorPrincipal.getNome() + " " + vitoriasJogador + " x " + vitoriasCPU + " CPU");
+        System.out.println("Resultado Final: " + jogadorPrincipal.getNome() + " " + vitoriasJogador + " x " + vitoriasAdversario + " Adversário");
 
         // Atualizar ranking
         ranking.put(nomeJogador, ranking.getOrDefault(nomeJogador, 0) + vitoriasJogador);
@@ -80,34 +89,33 @@ public class Jogo {
 
     /**
      * Determina o vencedor da rodada.
-     * @param jogada1 Jogada do primeiro jogador.
-     * @param jogada2 Jogada do segundo jogador.
-     * @return 1 se jogada1 vence, 2 se jogada2 vence, 0 se empate.
+     * param jogada1 Jogada do primeiro jogador.
+     * param jogada2 Jogada do segundo jogador.
+     * return 1 se jogada1 vence, 2 se jogada2 vence, 0 se empate.
      */
     private int determinarVencedor(String jogada1, String jogada2) {
         if (jogada1.equals(jogada2)) {
             return 0; // Empate
         }
 
-        switch (jogada1) {
+        switch (jogada1) { // usando switch
             case "PEDRA":
-                return (jogada2.equals("TESOURA")) ? 1 : 2;
+                return (jogada2.equals("TESOURA")) ? 1 : 2; //  usando operador ternário
             case "PAPEL":
                 return (jogada2.equals("PEDRA")) ? 1 : 2;
             case "TESOURA":
                 return (jogada2.equals("PAPEL")) ? 1 : 2;
             default:
-                return 0; // Isso não deveria acontecer com a validação do enum
+                return 0; //
         }
     }
 
-    // --- Métodos de Manipulação de Arquivos ---
-
+    // metodos do ranking
     private void carregarRanking() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO_RANKING))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO_RANKING))) { // lê o arquivo linha por linha, com base no ARQUIVO_RANKING
             String linha;
             while ((linha = reader.readLine()) != null) {
-                String[] partes = linha.split(":");
+                String[] partes = linha.split(":"); // divide a linha em partes, para que a saída fique bonita
                 if (partes.length == 2) {
                     String nome = partes[0];
                     int pontuacao = Integer.parseInt(partes[1]);
@@ -115,7 +123,7 @@ public class Jogo {
                 }
             }
             System.out.println("Ranking carregado com sucesso.");
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) { // exceptions
             System.out.println("Arquivo de ranking não encontrado. Um novo será criado.");
         } catch (IOException e) {
             System.err.println("Erro ao carregar o ranking: " + e.getMessage());
@@ -125,7 +133,7 @@ public class Jogo {
     }
 
     private void salvarRanking() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_RANKING))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_RANKING))) { // escreve no arquivo
             for (Map.Entry<String, Integer> entry : ranking.entrySet()) {
                 writer.write(entry.getKey() + ":" + entry.getValue());
                 writer.newLine();
@@ -143,7 +151,7 @@ public class Jogo {
             return;
         }
 
-        // Ordena o ranking por pontuação em ordem decrescente
+        // ordena o ranking por pontuação em ordem decrescente
         ranking.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .forEach(entry -> System.out.println(entry.getKey() + ": " + entry.getValue() + " vitórias"));

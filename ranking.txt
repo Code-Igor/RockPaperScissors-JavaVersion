@@ -1,1 +1,4 @@
 arroz:0
+IgorTchola:1
+Igor:0
+Cholito:6
